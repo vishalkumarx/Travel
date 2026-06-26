@@ -37,7 +37,7 @@ export default function Navbar() {
         <header
             data-testid="navbar"
             className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-                scrolled ? "glass-nav shadow-[0_8px_30px_rgba(0,0,0,0.06)]" : "bg-transparent"
+                scrolled ? "glass-nav shadow-[0_8px_30px_rgba(0,0,0,0.06)] text-foreground" : "bg-transparent text-white"
             }`}
         >
             <div className="max-w-[1440px] mx-auto px-6 md:px-10 lg:px-16 h-20 flex items-center justify-between">
@@ -50,7 +50,7 @@ export default function Navbar() {
                     </motion.div>
                     <div className="leading-tight">
                         <div className="font-display text-xl font-semibold tracking-tight">LuxeVoyage</div>
-                        <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground -mt-0.5">Curated Journeys</div>
+                        <div className={`text-[10px] uppercase tracking-[0.2em] -mt-0.5 ${scrolled ? "text-muted-foreground" : "text-white/60"}`}>Curated Journeys</div>
                     </div>
                 </Link>
 
@@ -62,7 +62,11 @@ export default function Navbar() {
                             data-testid={`nav-${n.label.toLowerCase().replace(/\s/g, "-")}`}
                             className={({ isActive }) =>
                                 `text-sm font-medium tracking-wide link-underline transition-colors ${
-                                    isActive ? "text-brand-gold" : "text-foreground/80 hover:text-foreground"
+                                    isActive
+                                        ? "text-brand-gold"
+                                        : scrolled
+                                            ? "text-foreground/80 hover:text-foreground"
+                                            : "text-white/85 hover:text-white"
                                 }`
                             }
                         >
@@ -75,7 +79,7 @@ export default function Navbar() {
                     <button
                         data-testid="theme-toggle"
                         onClick={toggle}
-                        className="p-2.5 rounded-full hover:bg-foreground/5 transition-colors"
+                        className={`p-2.5 rounded-full transition-colors ${scrolled ? "hover:bg-foreground/5" : "hover:bg-white/10"}`}
                         aria-label="Toggle theme"
                     >
                         <AnimatePresence mode="wait">
@@ -96,7 +100,7 @@ export default function Navbar() {
                             <button
                                 data-testid="user-menu-btn"
                                 onClick={() => setUserMenu((v) => !v)}
-                                className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-foreground/5"
+                                className={`flex items-center gap-2 px-3 py-2 rounded-full ${scrolled ? "hover:bg-foreground/5" : "hover:bg-white/10"}`}
                             >
                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-deep to-brand-gold flex items-center justify-center text-white text-sm font-medium">
                                     {user.name?.[0]?.toUpperCase()}
@@ -123,7 +127,7 @@ export default function Navbar() {
                             </AnimatePresence>
                         </div>
                     ) : (
-                        <Link to="/login" data-testid="nav-login" className="hidden md:inline-block text-sm font-medium px-4 py-2 hover:text-brand-gold transition-colors">
+                        <Link to="/login" data-testid="nav-login" className={`hidden md:inline-block text-sm font-medium px-4 py-2 transition-colors ${scrolled ? "hover:text-brand-gold" : "text-white/90 hover:text-brand-gold"}`}>
                             Sign in
                         </Link>
                     )}
@@ -131,14 +135,18 @@ export default function Navbar() {
                     <MagneticButton
                         data-testid="nav-book-now"
                         onClick={() => (window.location.href = "/packages")}
-                        className="hidden md:inline-flex bg-foreground text-background rounded-full px-5 py-2.5 text-sm shadow-lg"
+                        className={`hidden md:inline-flex rounded-full px-5 py-2.5 text-sm shadow-lg transition-colors ${
+                            scrolled
+                                ? "bg-foreground text-background"
+                                : "bg-brand-gold text-brand-midnight hover:bg-brand-gold/90"
+                        }`}
                     >
                         Book Now
                     </MagneticButton>
 
                     <button
                         data-testid="mobile-menu-btn"
-                        className="lg:hidden p-2.5 rounded-full hover:bg-foreground/5"
+                        className={`lg:hidden p-2.5 rounded-full ${scrolled ? "hover:bg-foreground/5" : "hover:bg-white/10"}`}
                         onClick={() => setOpen((v) => !v)}
                     >
                         {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
