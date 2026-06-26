@@ -19,8 +19,7 @@ export default function Home() {
     const [search, setSearch] = useState({ destination: "", dates: "", guests: "2", budget: "Premium", style: "Luxury" });
     const heroRef = useRef(null);
     const { scrollY } = useScroll();
-    const heroY = useTransform(scrollY, [0, 600], [0, 200]);
-    const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
+    const heroY = useTransform(scrollY, [0, 800], [0, 180]);
 
     useEffect(() => {
         api.get("/destinations").then((r) => setDestinations(r.data));
@@ -32,16 +31,32 @@ export default function Home() {
     return (
         <>
             {/* HERO */}
-            <section ref={heroRef} className="relative min-h-screen flex items-center pt-20 overflow-hidden" data-testid="hero-section">
-                <motion.div style={{ y: heroY, opacity: heroOpacity }} className="absolute inset-0 -z-10">
-                    <div
-                        className="absolute inset-0 bg-cover bg-center hero-bg"
-                        style={{
-                            backgroundImage: "url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2400&q=80')",
-                        }}
+            <section ref={heroRef} className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-brand-midnight" data-testid="hero-section">
+                <motion.div style={{ y: heroY }} className="absolute inset-0">
+                    {/* Poster image (visible instantly while video buffers) */}
+                    <img
+                        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2400&q=80"
+                        alt=""
+                        loading="eager"
+                        className="absolute inset-0 w-full h-full object-cover hero-bg"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-background" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent" />
+                    {/* Autoplay video background */}
+                    <video
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        preload="auto"
+                        poster="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2400&q=80"
+                        className="absolute inset-0 w-full h-full object-cover"
+                    >
+                        <source
+                            src="https://videos.pexels.com/video-files/3571264/3571264-hd_1920_1080_30fps.mp4"
+                            type="video/mp4"
+                        />
+                    </video>
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/80" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
                 </motion.div>
 
                 <div className="relative max-w-[1440px] mx-auto px-6 md:px-12 lg:px-20 w-full text-white">
