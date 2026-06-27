@@ -9,6 +9,13 @@ import api from "@/lib/api";
 import { Reveal, Stagger, StaggerItem } from "@/components/Reveal";
 import { Counter } from "@/components/Counter";
 import { MagneticButton } from "@/components/MagneticButton";
+import VideoCarousel from "@/components/VideoCarousel";
+
+const HERO_VIDEOS = [
+    "https://customer-assets.emergentagent.com/job_page-maker-823/artifacts/2or55kfk_14980745_3840_2160_60fps.mp4",
+    "https://customer-assets.emergentagent.com/job_page-maker-823/artifacts/iphv5bwy_4010511-hd_1920_1080_25fps.mp4",
+    "https://customer-assets.emergentagent.com/job_page-maker-823/artifacts/a1yw61bu_12336831_1920_1080_30fps.mp4",
+];
 
 const CATEGORIES = ["All", "Honeymoon", "Luxury", "Adventure", "Culture", "Family"];
 
@@ -33,29 +40,12 @@ export default function Home() {
             {/* HERO */}
             <section ref={heroRef} className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-brand-midnight" data-testid="hero-section">
                 <motion.div style={{ y: heroY }} className="absolute inset-0">
-                    {/* Poster image (visible instantly while video buffers) */}
-                    <img
-                        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2400&q=80"
-                        alt=""
-                        loading="eager"
-                        className="absolute inset-0 w-full h-full object-cover hero-bg"
-                    />
-                    {/* Autoplay video background */}
-                    <video
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                        preload="auto"
+                    <VideoCarousel
+                        videos={HERO_VIDEOS}
                         poster="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2400&q=80"
-                        className="absolute inset-0 w-full h-full object-cover"
-                    >
-                        <source
-                            src="https://videos.pexels.com/video-files/3571264/3571264-hd_1920_1080_30fps.mp4"
-                            type="video/mp4"
-                        />
-                    </video>
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/80" />
+                        className="w-full h-full"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/25 to-black/80" />
                     <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent" />
                 </motion.div>
 
@@ -66,9 +56,19 @@ export default function Home() {
                         transition={{ duration: 1, ease: [0.2, 0.8, 0.2, 1] }}
                         className="max-w-3xl"
                     >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8 text-xs uppercase tracking-[0.25em]">
-                            <span className="w-2 h-2 rounded-full bg-brand-gold pulse-dot" />
-                            <span className="text-white/90">Curated since 2008 · 28k+ travelers</span>
+                        <div className="inline-flex items-center gap-5 mb-10">
+                            <div className="flex items-center gap-1">
+                                {[0,1,2,3,4].map((i) => (
+                                    <Star key={i} className="w-3.5 h-3.5 fill-brand-gold text-brand-gold" strokeWidth={0} />
+                                ))}
+                            </div>
+                            <span className="text-[11px] uppercase tracking-[0.32em] text-white/70 font-medium">
+                                4.9 on Trustpilot
+                            </span>
+                            <span className="w-px h-4 bg-white/25" />
+                            <span className="text-[11px] uppercase tracking-[0.32em] text-white/70 font-medium">
+                                Est. 2008 · London
+                            </span>
                         </div>
                         <h1 className="font-display text-5xl md:text-7xl lg:text-[5.5rem] leading-[0.95] mb-6">
                             Discover<br />
