@@ -14,7 +14,7 @@ import VideoCarousel from "@/components/VideoCarousel";
 const HERO_VIDEOS = [
     "https://customer-assets.emergentagent.com/job_page-maker-823/artifacts/2or55kfk_14980745_3840_2160_60fps.mp4",
     "https://customer-assets.emergentagent.com/job_page-maker-823/artifacts/iphv5bwy_4010511-hd_1920_1080_25fps.mp4",
-    "https://customer-assets.emergentagent.com/job_page-maker-823/artifacts/a1yw61bu_12336831_1920_1080_30fps.mp4",
+    "https://customer-assets.emergentagent.com/job_page-maker-823/artifacts/0fl8q4pl_20156101-uhd_3840_2160_24fps.mp4",
 ];
 
 const CATEGORIES = ["All", "Honeymoon", "Luxury", "Adventure", "Culture", "Family"];
