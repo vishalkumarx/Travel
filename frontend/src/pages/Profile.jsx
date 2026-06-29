@@ -5,8 +5,9 @@ import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Package, Heart, LogOut, Pencil, MapPin, CalendarDays, ChevronRight, Loader2 } from "lucide-react";
+import { Package, Heart, LogOut, Pencil, Building2, CalendarDays, ChevronRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import DepartmentSelect from "@/components/DepartmentSelect";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -15,8 +16,7 @@ export default function Profile() {
   const [edit, setEdit] = useState(false);
   const [name, setName] = useState(user?.name || "");
   const [bio, setBio] = useState(user?.bio || "");
-  const [city, setCity] = useState(user?.location?.city || "");
-  const [state, setState] = useState(user?.location?.state || "");
+  const [department, setDepartment] = useState(user?.department || "");
   const [prefs, setPrefs] = useState(user?.notification_prefs || { requests: true, messages: true, promos: false });
   const [saving, setSaving] = useState(false);
 
@@ -27,7 +27,7 @@ export default function Profile() {
   const save = async () => {
     setSaving(true);
     try {
-      const res = await api.put("/auth/profile", { name, bio, location: { city, state, lat: 37.8719, lng: -122.2585 }, notification_prefs: prefs });
+      const res = await api.put("/auth/profile", { name, bio, department, notification_prefs: prefs });
       setUser(res.data);
       toast.success("Profile updated");
       setEdit(false);
@@ -51,7 +51,7 @@ export default function Profile() {
             <h1 className="font-heading text-2xl font-bold">{user?.name}</h1>
             <p className="text-sm text-zinc-500">{user?.email}</p>
             <div className="flex gap-3 mt-1 text-xs text-zinc-400">
-              {user?.location?.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{user.location.city}</span>}
+              {user?.department && <span className="flex items-center gap-1"><Building2 className="w-3 h-3" />{user.department}</span>}
               <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />Joined {joinDate}</span>
             </div>
           </div>
@@ -106,9 +106,9 @@ export default function Profile() {
           <div className="space-y-3">
             <input value={name} onChange={(e) => setName(e.target.value)} data-testid="edit-name" placeholder="Name" className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-volt" />
             <textarea value={bio} onChange={(e) => setBio(e.target.value)} data-testid="edit-bio" rows={2} placeholder="Bio" className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-volt resize-none" />
-            <div className="grid grid-cols-2 gap-3">
-              <input value={city} onChange={(e) => setCity(e.target.value)} data-testid="edit-city" placeholder="City" className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-volt" />
-              <input value={state} onChange={(e) => setState(e.target.value)} data-testid="edit-state" placeholder="State" className="bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-volt" />
+            <div>
+              <label className="text-xs uppercase tracking-widest text-zinc-500 mb-1.5 block">Department</label>
+              <DepartmentSelect value={department} onChange={setDepartment} testid="edit-department" />
             </div>
             <button onClick={save} disabled={saving} data-testid="save-profile" className="w-full bg-volt text-black font-bold rounded-2xl py-3 glow flex items-center justify-center">{saving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save"}</button>
           </div>

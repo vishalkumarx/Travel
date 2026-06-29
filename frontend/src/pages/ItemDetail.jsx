@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { api, imgUrl } from "@/api";
 import { useAuth } from "@/context/AuthContext";
-import { ChevronLeft, ChevronRight, Heart, MapPin, Star, Calendar as CalIcon, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Heart, MapPin, Star, Calendar as CalIcon, Loader2, Building2 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { catLabel } from "@/constants/categories";
@@ -106,8 +106,8 @@ export default function ItemDetail() {
               <p className="text-zinc-500 text-xs">per day</p>
             </div>
           </div>
-          {item.location?.city && (
-            <p className="flex items-center gap-1 text-zinc-400 text-sm mt-2"><MapPin className="w-4 h-4" />{item.location.city}{item.location.state ? `, ${item.location.state}` : ""}</p>
+          {item.department && (
+            <p className="flex items-center gap-1.5 text-zinc-400 text-sm mt-2"><Building2 className="w-4 h-4 text-volt" />{item.department}</p>
           )}
         </div>
 

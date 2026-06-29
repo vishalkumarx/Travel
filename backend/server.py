@@ -85,6 +85,7 @@ class ProfileUpdate(BaseModel):
     name: Optional[str] = None
     bio: Optional[str] = None
     picture: Optional[str] = None
+    department: Optional[str] = None
     location: Optional[Location] = None
     notification_prefs: Optional[Dict[str, bool]] = None
 
@@ -94,6 +95,7 @@ class ItemCreate(BaseModel):
     description: str = ""
     price_per_day: float
     category: str
+    department: str = ""
     location: Location = Field(default_factory=Location)
     images: List[str] = []
 
@@ -185,6 +187,7 @@ async def auth_session(response: Response, x_session_id: str = Header(None)):
             "name": data.get("name"),
             "picture": data.get("picture"),
             "bio": "",
+            "department": None,
             "location": {"city": None, "state": None, "lat": None, "lng": None},
             "notification_prefs": {"requests": True, "messages": True, "promos": False},
             "created_at": datetime.now(timezone.utc).isoformat(),
@@ -321,6 +324,7 @@ async def create_item(payload: ItemCreate, user=Depends(get_current_user)):
         "description": payload.description,
         "price_per_day": payload.price_per_day,
         "category": payload.category,
+        "department": payload.department,
         "location": payload.location.model_dump(),
         "images": payload.images,
         "status": "available",
@@ -731,24 +735,27 @@ async def startup():
     # seed demo data
     count = await db.items.count_documents({})
     if count == 0:
-        names = [("Maya Chen", "maya@campus.edu"), ("Jordan Lee", "jordan@campus.edu"), ("Sam Rivera", "sam@campus.edu")]
+        names = [("Maya Chen", "maya@campus.edu", "Computer Science"), ("Jordan Lee", "jordan@campus.edu", "Mech. Engineering"), ("Sam Rivera", "sam@campus.edu", "Economics (Punjab School of Economics)")]
         owner_ids = []
-        for i, (nm, em) in enumerate(names):
+        for i, (nm, em, dept) in enumerate(names):
             uid = f"user_seed_{i}"
             await db.users.update_one({"user_id": uid}, {"$set": {
                 "user_id": uid, "email": em, "name": nm, "picture": SEED_AVATARS[i % len(SEED_AVATARS)],
                 "bio": "Campus student renting out gear I'm not using.",
+                "department": dept,
                 "location": {"city": "Berkeley", "state": "CA", "lat": 37.8719, "lng": -122.2585},
                 "notification_prefs": {"requests": True, "messages": True, "promos": False},
                 "created_at": datetime.now(timezone.utc).isoformat(),
             }}, upsert=True)
             owner_ids.append(uid)
+        item_depts = ["Mech. Engineering", "Computer Science", "Visual and Performing Arts", "Economics (Punjab School of Economics)"]
         for idx, (title, cat, price, img, desc) in enumerate(SEED_ITEMS):
             await db.items.insert_one({
                 "id": str(uuid.uuid4()),
                 "owner_id": owner_ids[idx % len(owner_ids)],
                 "title": title, "description": desc, "price_per_day": price,
                 "category": cat,
+                "department": item_depts[idx % len(item_depts)],
                 "location": {"city": "Berkeley", "state": "CA", "lat": 37.8719 + idx * 0.01, "lng": -122.2585},
                 "images": [img], "status": "available", "liked_by": [],
                 "created_at": datetime.now(timezone.utc).isoformat(),

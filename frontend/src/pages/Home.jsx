@@ -3,7 +3,7 @@ import { api } from "@/api";
 import { useAuth } from "@/context/AuthContext";
 import ItemCard from "@/components/ItemCard";
 import { CATEGORIES, SORTS } from "@/constants/categories";
-import { Search, SlidersHorizontal, MapPin, ChevronDown, Bell, ArrowRight, Flame } from "lucide-react";
+import { Search, SlidersHorizontal, Building2, Bell, ArrowRight, Flame } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -23,7 +23,6 @@ export default function Home() {
   const [sort, setSort] = useState("newest");
   const [showFilter, setShowFilter] = useState(false);
   const [placeholder, setPlaceholder] = useState("");
-  const [locName, setLocName] = useState(user?.location?.city ? `${user.location.city}, ${user.location.state || ""}` : "Berkeley, CA");
 
   const firstName = user?.name?.split(" ")[0] || "there";
 
@@ -53,15 +52,6 @@ export default function Home() {
   useEffect(() => { fetchItems(); /* eslint-disable-next-line */ }, [category, sort]);
   useEffect(() => { const t = setTimeout(fetchItems, 350); return () => clearTimeout(t); /* eslint-disable-next-line */ }, [q]);
 
-  const detectLocation = () => {
-    if (!navigator.geolocation) { setLocName("Location unavailable"); return; }
-    setLocName("Detecting…");
-    navigator.geolocation.getCurrentPosition(
-      () => setLocName(user?.location?.city ? `${user.location.city}, ${user.location.state || ""}` : "Berkeley, CA"),
-      () => setLocName("Berkeley, CA")
-    );
-  };
-
   const toggleLike = async (item) => {
     setItems((prev) => prev.map((i) => i.id === item.id ? { ...i, liked: !i.liked } : i));
     try { await api.post(`/items/${item.id}/like`); } catch {}
@@ -72,9 +62,9 @@ export default function Home() {
       {/* Header */}
       <div className="sticky top-0 z-50 px-4 pt-6 pb-4 flex flex-col gap-4 backdrop-blur-xl bg-[#050505]/80 border-b border-white/5">
         <div className="flex justify-between items-center">
-          <button onClick={detectLocation} data-testid="home-location-dropdown" className="flex items-center gap-1.5 text-sm font-medium text-zinc-300 hover:text-white transition-colors">
-            <MapPin className="w-4 h-4 text-volt" />{locName}<ChevronDown className="w-4 h-4 text-zinc-500" />
-          </button>
+          <div data-testid="home-department-banner" className="flex items-center gap-1.5 text-sm font-medium text-zinc-300">
+            <Building2 className="w-4 h-4 text-volt" /><span className="truncate max-w-[220px]">{user?.department || "Set your department"}</span>
+          </div>
           <button data-testid="home-notification-bell" className="relative p-2.5 rounded-full bg-[#121212] border border-white/5">
             <Bell className="w-5 h-5 text-white" />
             <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-volt" />

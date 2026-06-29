@@ -4,6 +4,7 @@ import { api, imgUrl } from "@/api";
 import { CATEGORIES } from "@/constants/categories";
 import { ChevronLeft, Camera, X, AlertTriangle, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
+import DepartmentSelect from "@/components/DepartmentSelect";
 
 export default function ListingForm({ initial, mode = "create" }) {
   const navigate = useNavigate();
@@ -12,8 +13,7 @@ export default function ListingForm({ initial, mode = "create" }) {
   const [title, setTitle] = useState(initial?.title || "");
   const [category, setCategory] = useState(initial?.category || "textbooks");
   const [price, setPrice] = useState(initial?.price_per_day || "");
-  const [city, setCity] = useState(initial?.location?.city || "");
-  const [state, setState] = useState(initial?.location?.state || "");
+  const [department, setDepartment] = useState(initial?.department || "");
   const [description, setDescription] = useState(initial?.description || "");
   const [saving, setSaving] = useState(false);
 
@@ -39,10 +39,12 @@ export default function ListingForm({ initial, mode = "create" }) {
 
   const submit = async () => {
     if (!title || !price) { toast.error("Title and price are required"); return; }
+    if (!department) { toast.error("Please select a department"); return; }
     setSaving(true);
     const payload = {
       title, category, price_per_day: parseFloat(price), description,
-      location: { city, state, lat: 37.8719, lng: -122.2585 },
+      department,
+      location: { lat: 31.6340, lng: 74.8723 },
       images,
     };
     try {
@@ -104,14 +106,15 @@ export default function ListingForm({ initial, mode = "create" }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs uppercase tracking-widest text-zinc-500">Price / day ($)</label>
-            <input value={price} onChange={(e) => setPrice(e.target.value)} type="number" data-testid="listing-price" placeholder="10" className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-volt" />
-          </div>
-          <div>
-            <label className="text-xs uppercase tracking-widest text-zinc-500">City</label>
-            <input value={city} onChange={(e) => setCity(e.target.value)} data-testid="listing-city" placeholder="Berkeley" className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-volt" />
+        <div>
+          <label className="text-xs uppercase tracking-widest text-zinc-500">Price / day ($)</label>
+          <input value={price} onChange={(e) => setPrice(e.target.value)} type="number" data-testid="listing-price" placeholder="10" className="w-full mt-2 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-volt" />
+        </div>
+
+        <div>
+          <label className="text-xs uppercase tracking-widest text-zinc-500">Department</label>
+          <div className="mt-2">
+            <DepartmentSelect value={department} onChange={setDepartment} testid="listing-department" />
           </div>
         </div>
 

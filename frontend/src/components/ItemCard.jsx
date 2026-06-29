@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Heart, MapPin } from "lucide-react";
+import { Heart, MapPin, Building2 } from "lucide-react";
 import { imgUrl } from "@/api";
 import { useAuth } from "@/context/AuthContext";
 
@@ -45,8 +45,8 @@ export default function ItemCard({ item, onLike, index = 0, featured = false }) 
           <h3 className="font-heading font-bold text-xl leading-tight">{item.title}</h3>
           <div className="flex items-center justify-between mt-1.5">
             <span className="text-volt font-heading font-bold text-lg">${item.price_per_day}<span className="text-zinc-400 font-normal text-xs"> /day</span></span>
-            {item.location?.city && (
-              <span className="flex items-center gap-1 text-zinc-300 text-xs"><MapPin className="w-3.5 h-3.5" />{item.location.city}</span>
+            {item.department && (
+              <span className="flex items-center gap-1 text-zinc-300 text-xs truncate max-w-[55%]"><Building2 className="w-3.5 h-3.5 shrink-0" />{item.department}</span>
             )}
           </div>
         </div>
@@ -73,8 +73,8 @@ export default function ItemCard({ item, onLike, index = 0, featured = false }) 
         <h3 className="font-heading font-semibold text-sm leading-tight line-clamp-1">{item.title}</h3>
         <div className="flex items-center justify-between mt-1.5">
           <span className="text-volt font-heading font-bold text-base">${item.price_per_day}<span className="text-zinc-500 font-normal text-[10px] uppercase tracking-wider"> /day</span></span>
-          {item.location?.city && (
-            <span className="flex items-center gap-0.5 text-zinc-500 text-[11px]"><MapPin className="w-3 h-3" />{item.location.city}</span>
+          {item.department && (
+            <span className="flex items-center gap-0.5 text-zinc-500 text-[11px] truncate max-w-[60%]"><Building2 className="w-3 h-3 shrink-0" />{item.department}</span>
           )}
         </div>
       </div>

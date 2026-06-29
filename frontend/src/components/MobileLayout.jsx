@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Home, PlusCircle, Inbox, MessageCircle, User, Loader2 } from "lucide-react";
+import DepartmentPrompt from "@/components/DepartmentPrompt";
 
 const NAV = [
   { to: "/", icon: Home, label: "Home", testid: "nav-home" },
@@ -33,6 +34,7 @@ export default function MobileLayout({ children, hideNav = false }) {
 
   return (
     <div className="app-shell font-body pb-24">
+      <DepartmentPrompt />
       {children}
       {!hideNav && (
         <nav
