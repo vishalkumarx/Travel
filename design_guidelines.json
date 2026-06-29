@@ -1,0 +1,103 @@
+{
+  "theme": "Dark",
+  "archetype": "7 (Electric & Neon) - GenZ Campus Marketplace",
+  "design_principles": [
+    "Mobile-first constrained desktop wrapper simulating native app (max-w-md mx-auto)",
+    "Dark mode default with deep obsidian background (#050505)",
+    "Glassmorphism 2.0: Surgical application on overlays (Nav, Header, Modals) with subtle tint and white/10 borders",
+    "Glow Accents: Volt Green (#CCFF00) primary color with strategic CSS drop-shadows on active states",
+    "Rounded Corners: Extremely friendly, tactile 24px (rounded-3xl) for cards, 16px (rounded-2xl) for buttons/inputs"
+  ],
+  "typography": {
+    "headings": "Outfit, sans-serif (tracking-tight)",
+    "body": "Manrope, sans-serif",
+    "rules": [
+      "H1 (Hero): text-3xl sm:text-4xl tracking-tighter font-bold",
+      "H2: text-xl sm:text-2xl font-bold tracking-tight",
+      "Body: text-sm sm:text-base leading-relaxed text-gray-300",
+      "Overlines: text-xs uppercase tracking-[0.2em] text-gray-400"
+    ]
+  },
+  "colors": {
+    "background": "#050505",
+    "surface_solid": "#121212",
+    "surface_glass": "bg-white/5 backdrop-blur-xl",
+    "primary": "#CCFF00",
+    "primary_text": "#000000",
+    "primary_glow": "shadow-[0_0_20px_rgba(204,255,0,0.3)]",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#A1A1AA",
+    "border": "border-white/10"
+  },
+  "spacing_and_layout": {
+    "container": "max-w-md mx-auto min-h-screen bg-[#050505] text-white relative shadow-2xl overflow-x-hidden border-x border-white/10",
+    "padding": "p-4 sm:p-6",
+    "gap": "gap-4 sm:gap-6",
+    "radius": {
+      "cards": "rounded-3xl",
+      "buttons_inputs": "rounded-2xl",
+      "pills": "rounded-full"
+    }
+  },
+  "components": {
+    "cards": "bg-[#121212] rounded-3xl border border-white/5 overflow-hidden",
+    "bottom_nav": "fixed bottom-0 w-full max-w-md mx-auto bg-black/60 backdrop-blur-2xl border-t border-white/10 pb-safe pt-2 px-6 flex justify-between items-center z-50",
+    "search_bar": "bg-white/5 border border-white/10 rounded-2xl px-4 py-3 flex items-center gap-3 backdrop-blur-md focus-within:border-[#CCFF00] focus-within:shadow-[0_0_15px_rgba(204,255,0,0.2)] transition-all",
+    "buttons_primary": "bg-[#CCFF00] text-black font-bold rounded-2xl py-3 px-6 shadow-[0_0_15px_rgba(204,255,0,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all",
+    "status_pills": "px-3 py-1 text-xs font-semibold rounded-full bg-white/10 text-white backdrop-blur-md border border-white/10"
+  },
+  "micro_animations": {
+    "fade_in": "animate-in fade-in duration-300",
+    "slide_up": "animate-in slide-in-from-bottom-4 duration-500",
+    "hover_lift": "hover:-translate-y-1 transition-transform duration-200",
+    "active_press": "active:scale-95 transition-transform duration-150"
+  },
+  "images": {
+    "avatars": [
+      "https://images.unsplash.com/photo-1624918479892-3e5df2910410?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHwzfHxjb2xsZWdlJTIwc3R1ZGVudCUyMHBvcnRyYWl0fGVufDB8fHx8MTc4MjcwMDI0Nnww&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1544168190-79c17527004f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHwyfHxjb2xsZWdlJTIwc3R1ZGVudCUyMHBvcnRyYWl0fGVufDB8fHx8MTc4MjcwMDI0Nnww&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1618355776464-8666794d2520?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHwxfHxjb2xsZWdlJTIwc3R1ZGVudCUyMHBvcnRyYWl0fGVufDB8fHx8MTc4MjcwMDI0Nnww&ixlib=rb-4.1.0&q=85",
+      "https://images.unsplash.com/photo-1517256673644-36ad11246d21?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHw0fHxjb2xsZWdlJTIwc3R1ZGVudCUyMHBvcnRyYWl0fGVufDB8fHx8MTc4MjcwMDI0Nnww&ixlib=rb-4.1.0&q=85"
+    ],
+    "items": [
+      {
+        "category": "mobility",
+        "url": "https://images.unsplash.com/photo-1654748646458-056253a82853?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzd8MHwxfHNlYXJjaHwyfHxlbGVjdHJpYyUyMHNjb290ZXIlMjBjaXR5fGVufDB8fHx8MTc4MjcwMDI0NXww&ixlib=rb-4.1.0&q=85",
+        "title": "Xiaomi Electric Scooter Pro 2",
+        "price": "$15/day"
+      },
+      {
+        "category": "electronics",
+        "url": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHwxfHxoZWFkcGhvbmVzJTIwZGVza3xlbnwwfHx8fDE3ODI3MDAyNDV8MA&ixlib=rb-4.1.0&q=85",
+        "title": "Sony WH-1000XM4 Noise Cancelling",
+        "price": "$8/day"
+      },
+      {
+        "category": "electronics",
+        "url": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxtaXJyb3JsZXNzJTIwY2FtZXJhfGVufDB8fHx8MTc4MjcwMDI2M3ww&ixlib=rb-4.1.0&q=85",
+        "title": "Sony A7III Mirrorless Camera",
+        "price": "$30/day"
+      },
+      {
+        "category": "textbooks",
+        "url": "https://images.unsplash.com/photo-1516979187457-637abb4f9353?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTF8MHwxfHNlYXJjaHwzfHx0ZXh0Ym9va3MlMjBzdGFjayUyMGRlc2t8ZW58MHx8fHwxNzgyNzAwMjYzfDA&ixlib=rb-4.1.0&q=85",
+        "title": "Intro to Economics 10th Ed.",
+        "price": "$3/day"
+      }
+    ],
+    "banners": [
+      "https://images.unsplash.com/photo-1562774053-701939374585?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHwyfHxjb2xsZWdlJTIwY2FtcHVzfGVufDB8fHx8MTc4MjcwMDI2M3ww&ixlib=rb-4.1.0&q=85"
+    ]
+  },
+  "icons": {
+    "library": "lucide-react",
+    "stroke_width": "2",
+    "size": "20"
+  },
+  "testing": {
+    "rules": [
+      "All interactive and key informational elements MUST include a data-testid attribute.",
+      "Convention: kebab-case, role-based (e.g., data-testid='submit-booking-button')."
+    ]
+  }
+}
