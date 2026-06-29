@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import ItemCard from "@/components/ItemCard";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronLeft, Star, MapPin, MessageCircle, Loader2, Plus } from "lucide-react";
+import { ChevronLeft, Star, MapPin, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 export default function PublicProfile() {
@@ -25,11 +25,6 @@ export default function PublicProfile() {
 
   const { profile, listings, reviews, avg_rating, review_count } = data;
   const isMe = profile.user_id === user?.user_id;
-
-  const startChat = async () => {
-    const res = await api.post("/conversations", { other_user_id: profile.user_id });
-    navigate(`/chat/${res.data.id}`);
-  };
 
   const submitReview = async () => {
     try {
@@ -53,9 +48,8 @@ export default function PublicProfile() {
         </div>
         {profile.bio && <p className="text-sm text-zinc-300 mt-2">{profile.bio}</p>}
         {!isMe && (
-          <div className="flex gap-2 mt-4">
-            <button onClick={startChat} data-testid="pub-message" className="flex-1 bg-volt text-black font-bold rounded-2xl py-3 glow flex items-center justify-center gap-2"><MessageCircle className="w-4 h-4" />Message</button>
-            <button onClick={() => setShowReview(true)} data-testid="add-review" className="flex-1 bg-white/5 border border-white/10 rounded-2xl py-3 font-bold flex items-center justify-center gap-2"><Plus className="w-4 h-4" />Review</button>
+          <div className="mt-4">
+            <button onClick={() => setShowReview(true)} data-testid="add-review" className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 font-bold flex items-center justify-center gap-2"><Plus className="w-4 h-4" />Leave a Review</button>
           </div>
         )}
       </div>

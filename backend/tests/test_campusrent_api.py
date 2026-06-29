@@ -289,41 +289,58 @@ class TestRequests:
         requests.delete(f"{API}/items/{item_id}", headers=h(MAIN_TOKEN), timeout=30)
 
 
-# --------- Chat ---------
+# --------- Chat (item-scoped, post-iteration-2) ---------
 class TestChat:
-    def test_create_conversation_and_send_messages(self):
-        r = requests.post(f"{API}/conversations",
-                          json={"other_user_id": ALT_UID},
-                          headers=h(MAIN_TOKEN), timeout=30)
-        assert r.status_code == 200
-        conv_id = r.json()["id"]
-        # idempotent
-        r2 = requests.post(f"{API}/conversations",
-                           json={"other_user_id": MAIN_UID},
-                           headers=h(ALT_TOKEN), timeout=30)
-        assert r2.json()["id"] == conv_id
+    def test_chat_unlocks_only_after_booking_request(self):
+        # Create item owned by MAIN; ALT will request -> conv unlocks
+        payload = {"title": f"TEST_chat_{uuid.uuid4().hex[:6]}", "price_per_day": 4,
+                   "category": "other", "location": {}, "images": []}
+        r = requests.post(f"{API}/items", json=payload, headers=h(MAIN_TOKEN), timeout=30)
+        item_id = r.json()["id"]
+        try:
+            # Without booking: 403
+            r_no = requests.post(f"{API}/conversations",
+                                 json={"other_user_id": MAIN_UID, "item_id": item_id},
+                                 headers=h(ALT_TOKEN), timeout=30)
+            assert r_no.status_code == 403
 
-        # send a message
-        r3 = requests.post(f"{API}/messages/{conv_id}",
-                           json={"text": "Hello QA"},
-                           headers=h(MAIN_TOKEN), timeout=30)
-        assert r3.status_code == 200
+            # Without item_id: 400
+            r_bad = requests.post(f"{API}/conversations",
+                                  json={"other_user_id": ALT_UID},
+                                  headers=h(MAIN_TOKEN), timeout=30)
+            assert r_bad.status_code == 400
 
-        # list conversations for alt has unread
-        r4 = requests.get(f"{API}/conversations", headers=h(ALT_TOKEN), timeout=30)
-        assert any(c["id"] == conv_id and c["unread_count"] >= 1 for c in r4.json())
+            # ALT submits a request -> conversation created
+            rreq = requests.post(f"{API}/requests",
+                                 json={"item_id": item_id, "start_date": "2026-04-01",
+                                       "end_date": "2026-04-02", "total_price": 4},
+                                 headers=h(ALT_TOKEN), timeout=30)
+            assert rreq.status_code == 200
+            conv_id = rreq.json()["conversation_id"]
+            assert conv_id
 
-        # get messages marks read
-        r5 = requests.get(f"{API}/messages/{conv_id}", headers=h(ALT_TOKEN), timeout=30)
-        assert r5.status_code == 200
-        msgs = r5.json()["messages"]
-        assert any(m["text"] == "Hello QA" for m in msgs)
+            # Idempotent
+            r2 = requests.post(f"{API}/conversations",
+                               json={"other_user_id": ALT_UID, "item_id": item_id},
+                               headers=h(MAIN_TOKEN), timeout=30)
+            assert r2.json()["id"] == conv_id
 
-        # unread cleared
-        r6 = requests.get(f"{API}/conversations", headers=h(ALT_TOKEN), timeout=30)
-        for c in r6.json():
-            if c["id"] == conv_id:
-                assert c["unread_count"] == 0
+            # Send a user message
+            r3 = requests.post(f"{API}/messages/{conv_id}",
+                               json={"text": "Hello QA"},
+                               headers=h(MAIN_TOKEN), timeout=30)
+            assert r3.status_code == 200
+
+            # Unread for ALT
+            r4 = requests.get(f"{API}/conversations", headers=h(ALT_TOKEN), timeout=30)
+            assert any(c["id"] == conv_id and c["unread_count"] >= 1 for c in r4.json())
+
+            # Open -> read
+            r5 = requests.get(f"{API}/messages/{conv_id}", headers=h(ALT_TOKEN), timeout=30)
+            assert r5.status_code == 200
+            assert any(m["text"] == "Hello QA" for m in r5.json()["messages"])
+        finally:
+            requests.delete(f"{API}/items/{item_id}", headers=h(MAIN_TOKEN), timeout=30)
 
 
 # --------- Reviews / Public profile ---------

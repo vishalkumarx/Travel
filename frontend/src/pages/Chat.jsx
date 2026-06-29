@@ -55,7 +55,12 @@ export default function Chat() {
       <div className="sticky top-0 z-30 bg-[#050505]/90 backdrop-blur-xl px-4 py-3 flex items-center gap-3 border-b border-white/10">
         <button onClick={() => navigate("/messages")} data-testid="chat-back" className="w-9 h-9 rounded-full glass flex items-center justify-center"><ChevronLeft className="w-5 h-5" /></button>
         <Avatar className="w-9 h-9"><AvatarImage src={conv?.other_user?.picture} /><AvatarFallback className="bg-volt text-black">{conv?.other_user?.name?.[0]}</AvatarFallback></Avatar>
-        <p className="font-heading font-semibold">{conv?.other_user?.name || "Chat"}</p>
+        <div className="min-w-0">
+          <p className="font-heading font-semibold leading-tight truncate">{conv?.other_user?.name || "Chat"}</p>
+          {conv?.item_title && (
+            <button onClick={() => conv.item_id && navigate(`/item/${conv.item_id}`)} className="text-[11px] text-volt truncate block max-w-[200px]">About: {conv.item_title}</button>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 px-4 py-4 space-y-2.5 pb-28" data-testid="chat-messages">

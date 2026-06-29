@@ -18,12 +18,21 @@ ALT_UID = "user_qa_alt"
 
 @pytest.mark.asyncio
 async def test_ws_chat_realtime():
-    # ensure conversation exists
-    r = requests.post(f"{API}/conversations",
-                      json={"other_user_id": ALT_UID},
-                      headers={"Authorization": f"Bearer {MAIN_TOKEN}"}, timeout=30)
-    assert r.status_code == 200
-    conv_id = r.json()["id"]
+    # Create an item + booking request to unlock conversation
+    import uuid
+    payload = {"title": f"TEST_ws_{uuid.uuid4().hex[:6]}", "price_per_day": 3,
+               "category": "other", "location": {}, "images": []}
+    ri = requests.post(f"{API}/items", json=payload,
+                       headers={"Authorization": f"Bearer {MAIN_TOKEN}", "Content-Type": "application/json"}, timeout=30)
+    assert ri.status_code == 200, ri.text
+    item_id = ri.json()["id"]
+    rreq = requests.post(f"{API}/requests",
+                         json={"item_id": item_id, "start_date": "2026-05-01",
+                               "end_date": "2026-05-02", "total_price": 3},
+                         headers={"Authorization": f"Bearer {ALT_TOKEN}", "Content-Type": "application/json"}, timeout=30)
+    assert rreq.status_code == 200, rreq.text
+    conv_id = rreq.json()["conversation_id"]
+    assert conv_id
 
     received = []
 
@@ -48,6 +57,9 @@ async def test_ws_chat_realtime():
     assert r2.status_code == 200
     await task
     assert any(m.get("text") == "WS_QA_PING" for m in received), f"No WS broadcast received: {received}"
+    # cleanup
+    requests.delete(f"{API}/items/{item_id}",
+                    headers={"Authorization": f"Bearer {MAIN_TOKEN}"}, timeout=30)
 
 
 @pytest.mark.asyncio

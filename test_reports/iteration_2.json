@@ -1,0 +1,48 @@
+{
+  "summary": "Iteration 2 — Messaging policy (item-scoped + booking-gated). Backend: 33/33 pytest pass (4 new test classes covering: POST /requests auto-creates item-scoped conversation w/ conversation_id and '📩' system message; two different items → two separate conversations; POST /conversations returns 400 without item_id, 403 without an existing booking, 200 idempotent with existing booking; PUT /requests/{id}/status=cancelled by requester injects '🚫 Booking cancelled by ... Reason: ...' system message and frees the item; GET /messages/{id} returns conversation w/ item_title/item_image and is_system-flagged messages, opening clears unread). Backward-compat: existing chat test rewritten to require item_id + prior booking, WS test now creates a booking first to unlock conv (still real-time delivery + invalid token rejected). Frontend: verified on /requests, /item/:id, /user/:id, /chat/:id, /messages — ItemDetail and PublicProfile no longer show a Message button (only Send Request / Leave a Review); Requests 'My Requests' pending row shows Message + Withdraw; tapping Message navigates to /chat/{request.conversation_id} where the '📩 ... requested ...' system message renders; cancelled row hides Message and action buttons (only status + cancel reason); Messages inbox row shows other-user avatar overlapped on item thumbnail, item-title chip, system-message preview; Chat header shows other user name + 'About: {item_title}' link. Cancelled thread remains in inbox after cancellation, as required.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "DELETE /api/items/{id}", "issue": "Cancelled iteration-1 finding remains: items can be deleted while booking history and conversations still reference them (item resolves null in enrich_request). Consider blocking or cascading on delete (low priority for MVP)."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "ItemDetail sticky CTA + Chat input bar", "issue": "Iteration-1 'Made with Emergent' badge overlay over right-edge send-request / send-message still present. Not retested for fix in this iteration; main agent should confirm padding/shift was applied.", "selector": "[data-testid='send-request'], [data-testid='send-message']", "priority": "CARRYOVER"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_campusrent_api.py",
+    "/app/backend/tests/test_messaging_policy.py",
+    "/app/backend/tests/test_websocket.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(carryover) Confirm Emergent-badge vs sticky-CTA overlay fix from iteration_1 — no new regression introduced, but original bug not retested for resolution.",
+    "(nice-to-have) Add cascade behavior on DELETE /api/items/{id} when conversations/requests reference the item."
+  ],
+  "critical_code_review_comments": [
+    "server.py update_request_status 'cancelled' branch now correctly guards user_id ∈ (owner_id, requester_id) — iteration-1 security gap is FIXED.",
+    "server.py get_or_create_conversation correctly keys on sorted(participants) + item_id, persists item_title/item_image at creation time (note: title/image are snapshot at conv-create time; if owner edits item title later, existing conv rows won't auto-update — acceptable trade-off).",
+    "server.py POST /conversations correctly enforces item_id (400) and booking-existence (403). Idempotent return is correct.",
+    "create_request injects a system message via add_message which also broadcasts via WS — good. Note add_message increments unread for non-sender participants, including for sender_id='system' which bumps unread for BOTH owner and requester. Harmless but visible.",
+    "enrich_request adds conversation_id by re-querying conversations on each request fetch — for a heavy /requests inbox this is O(N) extra DB hits; could be denormalized onto the request doc.",
+    "Frontend Requests.jsx correctly hides Message/Withdraw/Cancel on rejected/cancelled requests; only status + cancel_reason are shown.",
+    "Frontend Messages.jsx item-scoped inbox row composition (item image + overlapped avatar + item-title chip + last_message preview + unread badge) matches spec.",
+    "Frontend Chat.jsx header shows 'About: {item_title}' link to /item/{conv.item_id} — matches spec."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_messaging_policy.py (new — 7 tests across 5 classes)",
+    "/app/backend/tests/test_campusrent_api.py (TestChat rewritten for item-scoped policy)",
+    "/app/backend/tests/test_websocket.py (now creates booking before WS connect)"
+  ],
+  "success_rate": {"backend": "100% (33/33)", "frontend": "100% on the 7 messaging-policy UI checks executed"},
+  "test_credentials": "Bearer/cookie sessions in MongoDB: qa_session_main (user_qa_main) and qa_session_alt (user_qa_alt). Seeded owners user_seed_0/1/2.",
+  "seed_data_creation": "Tests create TEST_-prefixed items per scenario and DELETE them in finally blocks. UI test left one cancelled request + its conversation (SEED_UI_3d1e9f) in DB intentionally to verify Messages inbox retention; safe to ignore.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: cd /app && python -m pytest backend/tests/ -v. Messaging policy is fully verified at API + UI level. Legacy WS_QA_PING conversation and a few other TEST_ leftovers from prior runs are visible in inbox — ignore. Iteration-1 Emergent-badge overlay on send-request/send-message CTAs was NOT re-verified for fix in this iteration; if main agent claims it's fixed, do a targeted tap test on /item/:id and /chat/:id.",
+  "rca of the issue": "No new defects. Iteration-1 cancel-path authorization gap (anyone could cancel anyone's request) is RESOLVED in server.py:464-466 — update_request_status now raises 403 when caller is neither owner nor requester. Messaging policy implementation is consistent end-to-end: create_request → get_or_create_conversation(sorted_pair, item_id) → add_message(system) → enrich_request(conversation_id); POST /conversations enforces item_id (400) + existing booking (403); cancellation injects 🚫 system message in the same item-scoped thread and frees the item back to 'available'."
+}

@@ -56,6 +56,7 @@ export default function Requests() {
   };
 
   const openChat = async (req) => {
+    if (req.conversation_id) { navigate(`/chat/${req.conversation_id}`); return; }
     const other = tab === "incoming" ? req.requester?.user_id : req.owner?.user_id;
     const res = await api.post("/conversations", { other_user_id: other, item_id: req.item_id });
     navigate(`/chat/${res.data.id}`);
@@ -139,18 +140,21 @@ export default function Requests() {
                   {/* bottom */}
                   <div className="flex justify-between items-center pt-3 border-t border-white/5">
                     <span className="font-heading text-xl font-black tracking-tight">${r.total_price}<span className="text-white/40 text-xs font-normal"> total</span></span>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center">
+                      {(r.status === "pending" || r.status === "accepted") && (
+                        <button onClick={() => openChat(r)} data-testid={`message-${r.id}`} className="w-11 h-11 rounded-2xl bg-white/10 text-white flex items-center justify-center active:scale-95 transition-transform shrink-0"><MessageCircle className="w-5 h-5" /></button>
+                      )}
                       {tab === "incoming" && r.status === "pending" && (
                         <>
                           <button onClick={() => act(r, "rejected")} data-testid={`reject-${r.id}`} className="px-4 py-2.5 rounded-2xl font-bold text-sm bg-white/10 text-white active:scale-95 transition-transform flex items-center gap-1.5"><X className="w-4 h-4" />Reject</button>
                           <button onClick={() => { setAcceptTarget(r); setCustomPrice(String(r.total_price)); }} data-testid={`accept-${r.id}`} className="px-4 py-2.5 rounded-2xl font-bold text-sm bg-volt text-black glow active:scale-95 transition-transform flex items-center gap-1.5"><Check className="w-4 h-4" />Accept</button>
                         </>
                       )}
+                      {tab === "mine" && r.status === "pending" && (
+                        <button onClick={() => setCancelTarget(r)} data-testid={`cancel-${r.id}`} className="px-4 py-2.5 rounded-2xl font-bold text-sm bg-red-500/10 text-red-500 active:scale-95 transition-transform">Withdraw</button>
+                      )}
                       {r.status === "accepted" && (
-                        <>
-                          <button onClick={() => setCancelTarget(r)} data-testid={`cancel-${r.id}`} className="px-4 py-2.5 rounded-2xl font-bold text-sm bg-red-500/10 text-red-500 active:scale-95 transition-transform">Cancel</button>
-                          <button onClick={() => openChat(r)} data-testid={`message-${r.id}`} className="px-4 py-2.5 rounded-2xl font-bold text-sm bg-volt text-black glow active:scale-95 transition-transform flex items-center gap-1.5"><MessageCircle className="w-4 h-4" />Message</button>
-                        </>
+                        <button onClick={() => setCancelTarget(r)} data-testid={`cancel-${r.id}`} className="px-4 py-2.5 rounded-2xl font-bold text-sm bg-red-500/10 text-red-500 active:scale-95 transition-transform flex-1 text-center">Cancel</button>
                       )}
                     </div>
                   </div>

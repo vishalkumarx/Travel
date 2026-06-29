@@ -62,18 +62,13 @@ export default function ItemDetail() {
         end_date: range.to.toISOString().slice(0, 10),
         total_price: total,
       });
-      toast.success("Request sent to owner!");
+      toast.success("Request sent! Chat with the owner from your Requests tab.");
       navigate("/requests");
     } catch (e) {
       toast.error(e.response?.data?.detail || "Could not send request");
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const startChat = async () => {
-    const res = await api.post("/conversations", { other_user_id: item.owner.user_id, item_id: item.id });
-    navigate(`/chat/${res.data.id}`);
   };
 
   return (
@@ -165,12 +160,9 @@ export default function ItemDetail() {
         ) : item.status !== "available" ? (
           <button disabled className="w-full bg-white/5 text-zinc-500 font-bold rounded-2xl py-4">Currently unavailable</button>
         ) : (
-          <div className="flex gap-3">
-            <button onClick={startChat} data-testid="message-owner" className="flex-1 bg-white/10 text-white font-bold rounded-2xl py-4 border border-white/10">Message</button>
-            <button onClick={sendRequest} disabled={submitting} data-testid="send-request" className="flex-1 bg-volt text-black font-bold rounded-2xl py-4 glow flex items-center justify-center">
-              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Request"}
-            </button>
-          </div>
+          <button onClick={sendRequest} disabled={submitting} data-testid="send-request" className="w-full bg-volt text-black font-bold rounded-2xl py-4 glow flex items-center justify-center">
+            {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Request"}
+          </button>
         )}
       </div>
     </div>

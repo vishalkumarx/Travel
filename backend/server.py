@@ -395,6 +395,11 @@ async def enrich_request(req):
                         "picture": requester.get("picture")} if requester else None
     req["owner"] = {"user_id": owner["user_id"], "name": owner.get("name"),
                    "picture": owner.get("picture")} if owner else None
+    conv = await db.conversations.find_one(
+        {"participants": sorted([req["requester_id"], req["owner_id"]]), "item_id": req["item_id"]},
+        {"_id": 0},
+    )
+    req["conversation_id"] = conv["id"] if conv else None
     return req
 
 
@@ -432,6 +437,11 @@ async def create_request(payload: RequestCreate, user=Depends(get_current_user))
     }
     await db.requests.insert_one(req)
     req.pop("_id", None)
+    # Unlock chat: a conversation becomes available as soon as a request is submitted
+    conv = await get_or_create_conversation(user["user_id"], item["owner_id"], payload.item_id)
+    await add_message(conv["id"], "system",
+                      f"📩 {user.get('name')} requested '{item.get('title')}' for {payload.start_date} → {payload.end_date} (${payload.total_price}).",
+                      is_system=True)
     return await enrich_request(req)
 
 
@@ -456,12 +466,10 @@ async def update_request_status(req_id: str, payload: StatusUpdate, user=Depends
             raise HTTPException(status_code=403, detail="Not part of this booking")
         update["cancel_reason"] = payload.cancel_reason
         await db.items.update_one({"id": req["item_id"]}, {"$set": {"status": "available"}, "$unset": {"rented_by": ""}})
-        # inject system message
+        # inject system message into the item-scoped thread
         conv = await get_or_create_conversation(req["requester_id"], req["owner_id"], req["item_id"])
-        item = await db.items.find_one({"id": req["item_id"]}, {"_id": 0})
-        canceller = "Owner" if user["user_id"] == req["owner_id"] else "Requester"
         await add_message(conv["id"], "system",
-                          f"Booking for '{item['title'] if item else 'item'}' was cancelled by {canceller}. Reason: {payload.cancel_reason or 'N/A'}",
+                          f"🚫 Booking cancelled by {user.get('name')}. Reason: {payload.cancel_reason or 'No reason provided'}",
                           is_system=True)
     await db.requests.update_one({"id": req_id}, {"$set": update})
     req = await db.requests.find_one({"id": req_id}, {"_id": 0})
@@ -471,13 +479,16 @@ async def update_request_status(req_id: str, payload: StatusUpdate, user=Depends
 # ----------------------------- Chat -----------------------------
 async def get_or_create_conversation(user_a: str, user_b: str, item_id: Optional[str] = None):
     participants = sorted([user_a, user_b])
-    conv = await db.conversations.find_one({"participants": participants}, {"_id": 0})
+    conv = await db.conversations.find_one({"participants": participants, "item_id": item_id}, {"_id": 0})
     if conv:
         return conv
+    item = await db.items.find_one({"id": item_id}, {"_id": 0}) if item_id else None
     conv = {
         "id": str(uuid.uuid4()),
         "participants": participants,
         "item_id": item_id,
+        "item_title": item.get("title") if item else None,
+        "item_image": (item.get("images") or [None])[0] if item else None,
         "last_message": None,
         "last_message_at": datetime.now(timezone.utc).isoformat(),
         "unread": {user_a: 0, user_b: 0},
@@ -514,6 +525,18 @@ async def add_message(conversation_id: str, sender_id: str, text: str, is_system
 
 @api_router.post("/conversations")
 async def create_conversation(payload: ConversationCreate, user=Depends(get_current_user)):
+    # No unsolicited DMs: a chat must be tied to an item (via an existing booking request)
+    if not payload.item_id:
+        raise HTTPException(status_code=400, detail="A booking request is required to start a chat")
+    booking = await db.requests.find_one({
+        "item_id": payload.item_id,
+        "$or": [
+            {"requester_id": user["user_id"], "owner_id": payload.other_user_id},
+            {"requester_id": payload.other_user_id, "owner_id": user["user_id"]},
+        ],
+    }, {"_id": 0})
+    if not booking:
+        raise HTTPException(status_code=403, detail="Chat unlocks only after a booking request")
     conv = await get_or_create_conversation(user["user_id"], payload.other_user_id, payload.item_id)
     return conv
 
