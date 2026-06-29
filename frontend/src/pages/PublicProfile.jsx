@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import ItemCard from "@/components/ItemCard";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ChevronLeft, Star, MapPin, Loader2, Plus } from "lucide-react";
+import { ChevronLeft, Star, MapPin, Loader2, Plus, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export default function PublicProfile() {
@@ -23,8 +23,10 @@ export default function PublicProfile() {
 
   if (!data) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-7 h-7 text-volt animate-spin" /></div>;
 
-  const { profile, listings, reviews, avg_rating, review_count } = data;
+  const { profile, listings, reviews, avg_rating, review_count, stats } = data;
   const isMe = profile.user_id === user?.user_id;
+  const rel = stats?.reliability_score;
+  const relColor = rel == null ? "text-zinc-400" : rel >= 90 ? "text-volt" : rel >= 70 ? "text-amber-400" : "text-red-400";
 
   const submitReview = async () => {
     try {
@@ -47,6 +49,16 @@ export default function PublicProfile() {
           {profile.location?.city && <span className="flex items-center gap-1"><MapPin className="w-4 h-4" />{profile.location.city}</span>}
         </div>
         {profile.bio && <p className="text-sm text-zinc-300 mt-2">{profile.bio}</p>}
+        <div className="flex gap-2 mt-3" data-testid="reliability-stats">
+          <div className="flex-1 bg-[#121212] border border-white/10 rounded-2xl p-3">
+            <div className="flex items-center gap-1.5"><ShieldCheck className={`w-4 h-4 ${relColor}`} /><span className="text-[10px] uppercase tracking-widest text-zinc-500">Reliability</span></div>
+            <p className={`font-heading font-bold text-xl mt-1 ${relColor}`}>{rel == null ? "New" : `${rel}%`}</p>
+          </div>
+          <div className="flex-1 bg-[#121212] border border-white/10 rounded-2xl p-3">
+            <span className="text-[10px] uppercase tracking-widest text-zinc-500">Cancellations</span>
+            <p className="font-heading font-bold text-xl mt-1">{stats?.cancellations ?? 0}{stats?.late_cancellations ? <span className="text-red-400 text-xs font-normal ml-1">({stats.late_cancellations} late)</span> : null}</p>
+          </div>
+        </div>
         {!isMe && (
           <div className="mt-4">
             <button onClick={() => setShowReview(true)} data-testid="add-review" className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 font-bold flex items-center justify-center gap-2"><Plus className="w-4 h-4" />Leave a Review</button>

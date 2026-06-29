@@ -464,7 +464,21 @@ async def update_request_status(req_id: str, payload: StatusUpdate, user=Depends
     elif payload.status == "cancelled":
         if user["user_id"] not in (req["owner_id"], req["requester_id"]):
             raise HTTPException(status_code=403, detail="Not part of this booking")
+        if req["status"] not in ("pending", "accepted"):
+            raise HTTPException(status_code=400, detail="Only pending or accepted bookings can be cancelled")
+        role = "owner" if user["user_id"] == req["owner_id"] else "rentee"
+        # Determine if this is a late cancellation (< 24h before start date)
+        late = False
+        try:
+            start_dt = datetime.fromisoformat(req["start_date"]).replace(tzinfo=timezone.utc)
+            late = (start_dt - datetime.now(timezone.utc)) < timedelta(hours=24)
+        except Exception:
+            late = False
         update["cancel_reason"] = payload.cancel_reason
+        update["cancelled_by"] = user["user_id"]
+        update["cancelled_by_role"] = role
+        update["cancelled_late"] = late
+        update["cancelled_at"] = datetime.now(timezone.utc).isoformat()
         await db.items.update_one({"id": req["item_id"]}, {"$set": {"status": "available"}, "$unset": {"rented_by": ""}})
         # inject system message into the item-scoped thread
         conv = await get_or_create_conversation(req["requester_id"], req["owner_id"], req["item_id"])
@@ -647,6 +661,27 @@ async def create_review(payload: ReviewCreate, user=Depends(get_current_user)):
     return review
 
 
+async def compute_user_stats(uid):
+    reqs = await db.requests.find({"$or": [{"owner_id": uid}, {"requester_id": uid}]}, {"_id": 0}).to_list(2000)
+    cancelled_by_user = [r for r in reqs if r.get("cancelled_by") == uid]
+    late_by_user = [r for r in cancelled_by_user if r.get("cancelled_late")]
+    accepted = [r for r in reqs if r.get("status") == "accepted"]
+    relevant = len(accepted) + len(cancelled_by_user)
+    reliability = round(100 * (1 - len(cancelled_by_user) / relevant)) if relevant > 0 else None
+    return {
+        "reliability_score": reliability,
+        "cancellations": len(cancelled_by_user),
+        "late_cancellations": len(late_by_user),
+        "accepted_bookings": len(accepted),
+        "requests_made": len([r for r in reqs if r["requester_id"] == uid]),
+    }
+
+
+@api_router.get("/stats/{user_id}")
+async def user_stats(user_id: str):
+    return await compute_user_stats(user_id)
+
+
 @api_router.get("/users/{user_id}")
 async def public_profile(user_id: str, request: Request):
     profile = await db.users.find_one({"user_id": user_id}, {"_id": 0})
@@ -662,8 +697,9 @@ async def public_profile(user_id: str, request: Request):
     reviews = await db.reviews.find({"reviewee_id": user_id}, {"_id": 0}).to_list(1000)
     reviews.sort(key=lambda x: x.get("created_at", ""), reverse=True)
     avg = round(sum(r["rating"] for r in reviews) / len(reviews), 1) if reviews else 0
+    stats = await compute_user_stats(user_id)
     return {"profile": profile, "listings": items, "reviews": reviews,
-            "avg_rating": avg, "review_count": len(reviews)}
+            "avg_rating": avg, "review_count": len(reviews), "stats": stats}
 
 
 @api_router.get("/")

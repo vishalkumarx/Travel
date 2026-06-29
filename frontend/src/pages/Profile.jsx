@@ -21,6 +21,8 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { api.get("/favorites").then((r) => setFavs(r.data)).catch(() => {}); }, []);
+  const [stats, setStats] = useState(null);
+  useEffect(() => { if (user?.user_id) api.get(`/stats/${user.user_id}`).then((r) => setStats(r.data)).catch(() => {}); }, [user?.user_id]);
 
   const save = async () => {
     setSaving(true);
@@ -59,6 +61,21 @@ export default function Profile() {
       </div>
 
       <div className="px-4 space-y-3">
+        <div className="flex gap-3" data-testid="profile-stats">
+          <div className="flex-1 glass rounded-2xl p-3">
+            <span className="text-[10px] uppercase tracking-widest text-zinc-500">Reliability</span>
+            <p className={`font-heading font-bold text-xl mt-1 ${stats?.reliability_score == null ? "text-zinc-400" : stats.reliability_score >= 90 ? "text-volt" : stats.reliability_score >= 70 ? "text-amber-400" : "text-red-400"}`}>{stats?.reliability_score == null ? "New" : `${stats.reliability_score}%`}</p>
+          </div>
+          <div className="flex-1 glass rounded-2xl p-3">
+            <span className="text-[10px] uppercase tracking-widest text-zinc-500">Bookings</span>
+            <p className="font-heading font-bold text-xl mt-1">{stats?.accepted_bookings ?? 0}</p>
+          </div>
+          <div className="flex-1 glass rounded-2xl p-3">
+            <span className="text-[10px] uppercase tracking-widest text-zinc-500">Cancels</span>
+            <p className="font-heading font-bold text-xl mt-1">{stats?.cancellations ?? 0}</p>
+          </div>
+        </div>
+
         <button onClick={() => navigate("/my-listings")} data-testid="goto-listings" className="w-full glass rounded-2xl p-4 flex items-center gap-3"><Package className="w-5 h-5 text-volt" /><span className="font-semibold text-sm">My Listings</span><ChevronRight className="w-5 h-5 text-zinc-500 ml-auto" /></button>
 
         <div className="glass rounded-2xl p-4">

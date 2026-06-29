@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api, imgUrl } from "@/api";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Inbox, Check, X, MessageCircle, Loader2, Calendar, Info, ArrowDownLeft, ArrowUpRight, DollarSign } from "lucide-react";
+import { Inbox, Check, X, MessageCircle, Loader2, Calendar, Info, ArrowDownLeft, ArrowUpRight, DollarSign, AlertTriangle, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 const STATUSES = ["all", "pending", "accepted", "rejected", "cancelled"];
@@ -63,6 +63,9 @@ export default function Requests() {
   };
 
   const acceptDays = acceptTarget ? Math.max(1, Math.round((new Date(acceptTarget.end_date) - new Date(acceptTarget.start_date)) / 86400000) + 1) : 0;
+  const cancelRole = tab === "incoming" ? "owner" : "rentee";
+  const isWithdraw = cancelTarget?.status === "pending";
+  const cancelLate = cancelTarget ? (new Date(cancelTarget.start_date) - new Date()) < 24 * 3600 * 1000 : false;
 
   return (
     <div className="min-h-screen">
@@ -181,12 +184,27 @@ export default function Requests() {
       {/* Cancel dialog */}
       <Dialog open={!!cancelTarget} onOpenChange={(o) => !o && setCancelTarget(null)}>
         <DialogContent className="bg-[#121212] border-white/10 text-white rounded-[32px] max-w-sm p-6" data-testid="cancel-dialog">
-          <DialogHeader><DialogTitle className="font-heading text-2xl tracking-tight">Cancel booking</DialogTitle></DialogHeader>
-          <p className="text-sm text-white/60 leading-relaxed">Let them know why — this note is posted to your chat automatically.</p>
-          <textarea value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} data-testid="cancel-reason-input" placeholder="Reason for cancelling…" className="w-full bg-[#050505] border border-white/10 rounded-2xl p-4 text-white text-sm placeholder:text-white/30 focus:border-white/50 focus:ring-1 focus:ring-white/50 outline-none min-h-[120px] resize-none" />
+          <DialogHeader><DialogTitle className="font-heading text-2xl tracking-tight">{isWithdraw ? "Withdraw request" : "Cancel booking"}</DialogTitle></DialogHeader>
+
+          {/* Policy warning */}
+          <div data-testid="cancel-policy-warning" className={`rounded-2xl p-3 flex gap-2.5 items-start border ${cancelLate ? "bg-red-500/10 border-red-500/30" : "bg-amber-400/10 border-amber-400/20"}`}>
+            <AlertTriangle className={`w-5 h-5 shrink-0 mt-0.5 ${cancelLate ? "text-red-400" : "text-amber-400"}`} />
+            <div className="text-xs leading-relaxed">
+              {cancelLate ? (
+                <p data-testid="late-cancel-warning"><span className="font-bold">Late cancellation.</span> This booking starts within 24 hours. {cancelRole === "owner" ? "Owner cancellations this close significantly lower your seller rating and visibility." : "Last-minute cancellations hurt your reliability score and may limit future bookings."}</p>
+              ) : (
+                <p>{cancelRole === "owner"
+                  ? "Only cancel if the item is genuinely unavailable (damaged or lost). Frequent owner cancellations reduce your seller rating and visibility."
+                  : "Cancellations are free up to 24 hours before the start date. Frequent last-minute cancellations may lower your reliability score."}</p>
+              )}
+            </div>
+          </div>
+
+          <p className="text-sm text-white/60 leading-relaxed">Add a short reason — it's posted to your chat automatically as a system note.</p>
+          <textarea value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} data-testid="cancel-reason-input" placeholder="Reason (optional)…" className="w-full bg-[#050505] border border-white/10 rounded-2xl p-4 text-white text-sm placeholder:text-white/30 focus:border-white/50 focus:ring-1 focus:ring-white/50 outline-none min-h-[100px] resize-none" />
           <div className="flex gap-3">
             <button onClick={() => setCancelTarget(null)} className="flex-1 bg-white/10 text-white font-bold rounded-2xl py-4 active:scale-95 transition-transform">Keep it</button>
-            <button onClick={confirmCancel} data-testid="confirm-cancel" className="flex-1 bg-red-500/90 text-white font-bold rounded-2xl py-4 active:scale-95 transition-transform">Cancel Booking</button>
+            <button onClick={confirmCancel} data-testid="confirm-cancel" className="flex-1 bg-red-500/90 text-white font-bold rounded-2xl py-4 active:scale-95 transition-transform">{isWithdraw ? "Withdraw" : "Cancel Booking"}</button>
           </div>
         </DialogContent>
       </Dialog>

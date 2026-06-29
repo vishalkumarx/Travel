@@ -1,0 +1,46 @@
+{
+  "summary": "Iteration 3 — Booking lifecycle + cancellation policy + reliability stats. Backend: 45/45 pytest pass (33 prior + 12 new in test_booking_cancellation_policy.py covering: accept with custom_price overrides total_price + flips item to status=rented w/ rented_by; owner-only accept/reject (403 for non-owner); rentee cancel of pending records cancelled_by=qa_main + cancelled_by_role='rentee' + cancelled_late=false + cancel_reason + cancelled_at AND frees item to status=available; owner cancel of accepted records cancelled_by_role='owner' + frees item; late detection true when start_date==today (within 24h UTC); third-party 401 unauthenticated; cancelling an already-rejected → 400; double-cancel → 400; cancel injects '🚫 Booking cancelled by {name}. Reason: {reason}' is_system message into the item-scoped conversation; GET /api/stats/{user_id} returns null reliability when no relevant bookings; with 1 accepted + 1 cancelled (non-late) reliability_score=50, accepted=1, cancellations=1, late=0, requests_made=2; GET /api/users/{id} body includes a stats object with identical fields). Frontend: verified on /requests, /profile, /user/:id — pending row opens dialog titled 'Withdraw request' with cancel-policy-warning copy mentioning reliability + 24h; same dialog for a within-24h pending request additionally renders late-cancel-warning (red Late cancellation. … reliability score …); owner Incoming→Accepted cancel dialog title 'Cancel booking' with owner-specific 'Frequent owner cancellations reduce your seller rating and visibility'; profile-stats row renders Reliability%/Bookings/Cancels; PublicProfile reliability-stats cards render Reliability % + Cancellations(N late); home feed shows rented-overlay on the accepted item.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "PUT /api/requests/{id}/status (cancelled)", "issue": "Late detection uses datetime.fromisoformat(start_date).replace(tzinfo=utc) — for a 'YYYY-MM-DD' start_date this parses to 00:00 UTC of that day, so a request created late in the UTC day with start_date=today is correctly flagged late, but a request with start_date=yesterday (already started) is also 'late' (negative delta < 24h). Acceptable given spec but flag for clarity."},
+      {"endpoint": "PUT /api/requests/{id}/status", "issue": "When transitioning accepted→cancelled the item is freed (status=available, rented_by unset). No regression but worth noting the same item can be re-booked by another rentee after owner cancel — desired."},
+      {"endpoint": "DELETE /api/items/{id}", "issue": "(carry-over from iter1/iter2) deleting an item does not cascade requests/conversations; stats compute_user_stats still counts those bookings even if the item is gone."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Cancel dialog", "issues": ["DialogContent emits 'Missing Description or aria-describedby' a11y warning (Radix). Non-blocking; consider adding DialogDescription to silence."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_booking_cancellation_policy.py",
+    "/app/backend/tests/test_campusrent_api.py",
+    "/app/backend/tests/test_messaging_policy.py",
+    "/app/backend/tests/test_websocket.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(nice-to-have) Add DialogDescription/aria-describedby to cancel-dialog and accept-dialog to clear Radix a11y warnings.",
+    "(carry-over) Cascade or block DELETE /api/items/{id} when bookings/conversations reference the item (otherwise stats keep counting stale bookings)."
+  ],
+  "critical_code_review_comments": [
+    "server.py update_request_status cancelled branch is correct: 403 if caller ∉ (owner, requester); 400 if status not in (pending, accepted); records cancelled_by/_by_role/_late/_at + cancel_reason; resets item to available and $unsets rented_by; injects system message via add_message. Late computation uses 'YYYY-MM-DD' parsed as UTC midnight which matches spec.",
+    "server.py accept branch: custom_price correctly overrides total_price AND sets item.status=rented + rented_by=requester_id. Good.",
+    "server.py compute_user_stats: relevant = accepted + cancelled_by_user. Note: this counts as 'cancellations' only cancellations performed BY the user (cancelled_by==uid), not cancellations they suffered as the counterparty — matches spec ('reliability of this user'). 'accepted_bookings' counts ALL accepted records the user is on (as either side); slight asymmetry vs. 'cancellations' which is action-attributed. Acceptable for MVP but worth documenting.",
+    "Requests.jsx isWithdraw/cancelLate logic correctly drives title + warning variant; copy distinguishes owner vs rentee + late vs not. cancel-policy-warning and late-cancel-warning testids are present.",
+    "Profile.jsx fetches /stats/{user_id} on mount and renders the 3-cell row. PublicProfile.jsx reads data.stats from /users/{id} (single call) — efficient, avoids extra round-trip."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_booking_cancellation_policy.py (new — 12 tests, 3 classes)"
+  ],
+  "success_rate": {"backend": "100% (45/45)", "frontend": "100% on the 6 policy/stats UI checks executed"},
+  "test_credentials": "Bearer/cookie sessions in MongoDB: qa_session_main (user_qa_main) and qa_session_alt (user_qa_alt). Their expires_at was rolled forward 30 days during this iteration to keep sessions valid.",
+  "seed_data_creation": "Tests create TEST_-prefixed items + transient users (user_qa_relstats_*, user_qa_late_*, user_qa_stats_*) and delete them in finally blocks. UI test seeded 3 items + 3 requests (1 accepted, 2 pending) for visual verification and deleted all 3 items at the end. Note: pre-existing TEST_* leftovers from prior iterations (visible as 27 total rentee requests) still live in qa_main's Requests inbox.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: cd /app && python -m pytest backend/tests/ -v. Booking/cancellation policy + reliability stats are fully verified at API + UI. qa_main now has accumulated stats from many iterations (Reliability ~27%, 4 accepted, 11 cancellations) — do NOT assert exact stat values for qa_main/qa_alt; if you need clean math, create a transient user as in TestReliabilityStats.test_reliability_math_50_percent. The 'Made with Emergent' badge in the bottom-right of /requests still occasionally overlays the last visible row's Withdraw button at viewport 390x844 — workaround is scroll_into_view_if_needed() then force=True click.",
+  "rca of the issue": "No defects found. Implementation matches spec end-to-end. Frontend cancel dialog correctly branches on (isWithdraw, cancelRole, cancelLate) producing 4 visual states; backend enforces all authorization, transition, freeing, system-message, and stats requirements."
+}
