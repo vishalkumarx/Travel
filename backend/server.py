@@ -452,6 +452,8 @@ async def update_request_status(req_id: str, payload: StatusUpdate, user=Depends
         if req["owner_id"] != user["user_id"]:
             raise HTTPException(status_code=403, detail="Only owner can reject")
     elif payload.status == "cancelled":
+        if user["user_id"] not in (req["owner_id"], req["requester_id"]):
+            raise HTTPException(status_code=403, detail="Not part of this booking")
         update["cancel_reason"] = payload.cancel_reason
         await db.items.update_one({"id": req["item_id"]}, {"$set": {"status": "available"}, "$unset": {"rented_by": ""}})
         # inject system message

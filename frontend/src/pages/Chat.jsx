@@ -75,7 +75,7 @@ export default function Chat() {
         <div ref={bottomRef} />
       </div>
 
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-3 bg-[#050505]/90 backdrop-blur-xl border-t border-white/10 z-40">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md px-3 pt-3 pb-14 bg-[#050505]/90 backdrop-blur-xl border-t border-white/10 z-40">
         <div className="flex items-center gap-2">
           <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} data-testid="chat-input" placeholder="Type a message…" className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm outline-none focus:border-volt" />
           <button onClick={send} data-testid="send-message" className="w-12 h-12 rounded-2xl bg-volt text-black flex items-center justify-center active:scale-95 transition-transform"><Send className="w-5 h-5" /></button>

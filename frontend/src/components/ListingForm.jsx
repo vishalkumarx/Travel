@@ -126,7 +126,7 @@ export default function ListingForm({ initial, mode = "create" }) {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 bg-[#050505]/90 backdrop-blur-xl border-t border-white/10 z-40">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md px-4 pt-4 pb-16 bg-[#050505]/90 backdrop-blur-xl border-t border-white/10 z-40">
         <button onClick={submit} disabled={saving} data-testid="publish-button" className="w-full bg-volt text-black font-bold rounded-2xl py-4 glow flex items-center justify-center">
           {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : (mode === "create" ? "Publish Listing" : "Save Changes")}
         </button>

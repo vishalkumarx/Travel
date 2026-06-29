@@ -159,7 +159,7 @@ export default function ItemDetail() {
       </div>
 
       {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 bg-[#050505]/90 backdrop-blur-xl border-t border-white/10 z-40">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md px-4 pt-4 pb-16 bg-[#050505]/90 backdrop-blur-xl border-t border-white/10 z-40">
         {isOwner ? (
           <button onClick={() => navigate(`/edit/${item.id}`)} data-testid="edit-own-item" className="w-full bg-white/10 text-white font-bold rounded-2xl py-4 border border-white/10">Edit your listing</button>
         ) : item.status !== "available" ? (
